@@ -85,15 +85,13 @@ Identify the skills most frequently requested for the top three data roles in th
 > *The snippet below highlights the core visualization logic. See the notebook (.ipynb) above for the complete implementation.*
 
 ```python
+job_titles = df['job_title_short'].value_counts().head(3).index.to_list()
 fig, ax = plt.subplots(len(job_titles), 1)
 
 sns.set_theme(style='ticks')
 
 for i, job_titles in enumerate(job_titles):
-    df_plot = df_skills_pct[
-        df_skills_pct['job_title_short'] == job_titles
-        ].head(5)
-
+    df_plot = df_skills_pct[df_skills_pct['job_title_short'] == job_titles].head(5)
     sns.barplot(
         data=df_plot, 
         x='skill_pct', 
@@ -102,13 +100,13 @@ for i, job_titles in enumerate(job_titles):
         hue='skill_pct', 
         palette='dark:b_r'
     )
-
     ax[i].set_title(job_titles)
     ax[i].set_ylabel('')
     ax[i].set_xlabel('')
     ax[i].get_legend().remove()
     ax[i].set_xlim(0, 75)
 
+    # here's the label
     for n, v in enumerate(df_plot['skill_pct']):
         ax[i].text(v, n, f'{v: .0f}%', va='center', fontsize=8) 
 
@@ -144,27 +142,36 @@ Analyze how demand for the top Data Engineer skills changes throughout the year 
 > *The snippet below highlights the core visualization logic. See the notebook (.ipynb) above for the complete implementation.*
 
 ```python
+df_plot = df_de_pct.iloc[:, :5]
+
 sns.lineplot(
-    data=df_plot, 
-    dashes=False, 
+    data=df_plot,
+    dashes=False,
     palette='tab10'
 )
 
-sns.set_theme(style='ticks')
 sns.despine()
 
-plt.title('Top Skills Trend of Data Engineer in US ')
+plt.title('Top Skills Trend of Data Engineer in U.S.')
 plt.xlabel('2023')
 plt.ylabel('Likelihood (%)')
 plt.ylim(25, 75)
 plt.yticks(np.arange(25, 76, 5))
 plt.legend().set_visible(False)
 
+# Format y-axis as percentages
+from matplotlib.ticker import PercentFormatter
 ax = plt.gca()
 ax.yaxis.set_major_formatter(PercentFormatter(decimals=0))
 
+# Add skill names to the end of each line
 for i in range(5):
-    plt.text(11 + 0.2, df_plot.iloc[-1, i], df_plot.columns[i], fontsize=8)
+    plt.text(
+        11.2,
+        df_plot.iloc[-1, i],
+        df_plot.columns[i],
+        fontsize=8
+    )
 
 plt.show()
 ```
@@ -195,50 +202,46 @@ Compare the **highest-paying technical skills** with the **most in-demand skills
 ```python
 fig, ax = plt.subplots(2, 1)
 
-# top 10 Highest Pay Skills
+# Plot top 10 highest-paying skills
 sns.barplot(
-    data=df_top_pay, 
-    x='median', 
-    y=df_top_pay.index, 
-    ax=ax[0], 
-    hue='median', 
+    data=df_top_pay,
+    x='median',
+    y=df_top_pay.index,
+    ax=ax[0],
+    hue='median',
     palette='dark:b_r'
 )
 
-# top 10 Most In-Demand Skills
+# Plot top 10 most in-demand skills
 sns.barplot(
-    data=df_top_skills, 
-    x='median', 
-    y=df_top_skills.index, 
-    ax=ax[1], 
-    hue='median', 
+    data=df_top_skills,
+    x='median',
+    y=df_top_skills.index,
+    ax=ax[1],
+    hue='median',
     palette='dark:b_r'
 )
 
-sns.set_theme(style='ticks')
 sns.despine()
+
 fig.suptitle('Data Engineer in United States', fontsize=14)
 fig.tight_layout()
 
-ax[0].set_title('Top 10 Highest Pay Skills')
+ax[0].set_title('Top 10 Highest-Paying Skills')
 ax[0].legend().remove()
 ax[0].set_xlabel('')
 ax[0].set_ylabel('')
-ax[0].xaxis.set_major_formatter(plt.FuncFormatter(
-    lambda x, _:
-        f'${int(x / 1000)}K'
-    )
+ax[0].xaxis.set_major_formatter(
+    plt.FuncFormatter(lambda x, _: f'${int(x / 1000)}K')
 )
 
-ax[1].set_title('Top 10 In-Demand Skills')
+ax[1].set_title('Top 10 Most In-Demand Skills')
 ax[1].legend().remove()
 ax[1].set_xlabel('Yearly Median Salary (USD)')
 ax[1].set_ylabel('')
 ax[1].set_xlim(ax[0].get_xlim())
-ax[1].xaxis.set_major_formatter(plt.FuncFormatter(
-    lambda x, _:
-        f'${int(x / 1000)}K'
-    )
+ax[1].xaxis.set_major_formatter(
+    plt.FuncFormatter(lambda x, _: f'${int(x / 1000)}K')
 )
 
 plt.show()
@@ -282,27 +285,31 @@ plt.title('Most Optimal Skills for Data Engineer')
 plt.xlabel('% Likelihood Skills in Job Posting')
 plt.ylabel('Median Yearly Salary (USD)')
 
+# Format the x-axis and y-axis
 ax = plt.gca()
 ax.xaxis.set_major_formatter(PercentFormatter(decimals=0))
-ax.yaxis.set_major_formatter(plt.FuncFormatter(
-    lambda y, _:
-        f'${int(y / 1000)}K'
-    )
+ax.yaxis.set_major_formatter(
+    plt.FuncFormatter(lambda y, _: f'${int(y / 1000)}K')
 )
 
+# Add label to each dot
 texts = []
-for i, txt in enumerate(df_skills.index):
+
+for i, skill in enumerate(df_skills.index):
     texts.append(
         plt.text(
             df_skills['skill_pct'].iloc[i],
             df_skills['median_salary'].iloc[i],
-            txt
+            skill
         )
     )
 
-adjust_text(texts, arrowprops=dict(arrowstyle='->', color='gray'))
+# Adjust text to avoid overlap and add arrows
+adjust_text(
+    texts,
+    arrowprops={'arrowstyle': '->', 'color': 'gray'}
+)
 
-plt.tight_layout()
 plt.show()
 ```
 
